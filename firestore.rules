@@ -1,0 +1,210 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default deny everything
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedUser() && (
+        request.auth.token.email == 'mohsinali031332@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Lead Validation Blueprint
+    function isValidLead(data) {
+      return data.keys().hasAll([
+        'fullName', 'email', 'phone', 'propertyAddress', 'neighborhood',
+        'propertyType', 'estimatedValue', 'timeline', 'homeCondition',
+        'leadType', 'preferredSlot', 'notes', 'tags', 'status',
+        'sourcePage', 'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'fullName', 'email', 'phone', 'propertyAddress', 'neighborhood',
+        'propertyType', 'estimatedValue', 'timeline', 'homeCondition',
+        'leadType', 'preferredSlot', 'notes', 'tags', 'status',
+        'sourcePage', 'createdAt', 'updatedAt'
+      ]) &&
+      data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100 &&
+      data.email is string && data.email.size() >= 5 && data.email.size() <= 120 && data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$') &&
+      data.phone is string && data.phone.size() >= 7 && data.phone.size() <= 30 &&
+      data.propertyAddress is string && data.propertyAddress.size() >= 3 && data.propertyAddress.size() <= 200 &&
+      data.neighborhood is string && data.neighborhood.size() >= 2 && data.neighborhood.size() <= 80 &&
+      data.propertyType in ['Single Family', 'Modern Estate', 'Townhome', 'Condo', 'Lot / Land'] &&
+      data.estimatedValue is number && data.estimatedValue >= 0 && data.estimatedValue <= 100000000 &&
+      data.timeline in ['ASAP (0-30 Days)', '1-3 Months', '3-6 Months', 'Exploring Options'] &&
+      data.homeCondition in ['Turnkey / Renovated', 'Move-in Ready', 'Needs Light Updates', 'Major Renovation'] &&
+      data.leadType in ['seller-consultation', 'home-valuation', 'property-inquiry', 'general-contact'] &&
+      data.preferredSlot is string && data.preferredSlot.size() <= 80 &&
+      data.notes is string && data.notes.size() <= 1000 &&
+      data.tags is list && data.tags.size() >= 1 && data.tags.size() <= 10 && data.tags[0] is string && data.tags[0].size() <= 50 &&
+      data.status in ['new', 'contacted', 'consultation-booked', 'listed', 'closed'] &&
+      data.sourcePage is string && data.sourcePage.size() >= 1 && data.sourcePage.size() <= 60 &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // Listing Validation Blueprint
+    function isValidListing(data) {
+      return data.keys().hasAll([
+        'title', 'address', 'neighborhood', 'city', 'price', 'beds', 'baths',
+        'sqft', 'lotSqft', 'status', 'propertyType', 'daysOnMarket',
+        'saleToListRatio', 'imageUrl', 'description', 'highlights', 'featured',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'title', 'address', 'neighborhood', 'city', 'price', 'beds', 'baths',
+        'sqft', 'lotSqft', 'status', 'propertyType', 'daysOnMarket',
+        'saleToListRatio', 'imageUrl', 'description', 'highlights', 'featured',
+        'createdAt', 'updatedAt'
+      ]) &&
+      data.title is string && data.title.size() >= 4 && data.title.size() <= 120 &&
+      data.address is string && data.address.size() >= 4 && data.address.size() <= 160 &&
+      data.neighborhood is string && data.neighborhood.size() >= 2 && data.neighborhood.size() <= 80 &&
+      data.city is string && data.city.size() >= 2 && data.city.size() <= 80 &&
+      data.price is number && data.price > 0 && data.price <= 100000000 &&
+      data.beds is number && data.beds >= 0 && data.beds <= 30 &&
+      data.baths is number && data.baths >= 0 && data.baths <= 30 &&
+      data.sqft is number && data.sqft > 0 && data.sqft <= 100000 &&
+      data.lotSqft is number && data.lotSqft >= 0 && data.lotSqft <= 5000000 &&
+      data.status in ['for-sale', 'pending', 'sold'] &&
+      data.propertyType in ['Single Family', 'Modern Estate', 'Townhome', 'Condo'] &&
+      data.daysOnMarket is number && data.daysOnMarket >= 0 && data.daysOnMarket <= 3650 &&
+      data.saleToListRatio is string && data.saleToListRatio.size() <= 20 &&
+      data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 300 &&
+      data.description is string && data.description.size() >= 1 && data.description.size() <= 1200 &&
+      data.highlights is list && data.highlights.size() >= 1 && data.highlights.size() <= 8 && data.highlights[0] is string && data.highlights[0].size() <= 100 &&
+      data.featured is bool &&
+      data.createdAt is timestamp &&
+      data.updatedAt is timestamp;
+    }
+
+    // Site Brand Settings Blueprint
+    function isValidSiteSettings(data) {
+      return data.keys().hasAll([
+        'agencyName', 'agentName', 'agentTitle', 'licenseNumber', 'cityRegion',
+        'officeAddress', 'officePhone', 'officeEmail', 'accentColor', 'fontStyle',
+        'heroHeadline', 'heroSubheadline', 'agentBio', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'agencyName', 'agentName', 'agentTitle', 'licenseNumber', 'cityRegion',
+        'officeAddress', 'officePhone', 'officeEmail', 'accentColor', 'fontStyle',
+        'heroHeadline', 'heroSubheadline', 'agentBio', 'updatedAt'
+      ]) &&
+      data.agencyName is string && data.agencyName.size() >= 2 && data.agencyName.size() <= 80 &&
+      data.agentName is string && data.agentName.size() >= 2 && data.agentName.size() <= 80 &&
+      data.agentTitle is string && data.agentTitle.size() >= 2 && data.agentTitle.size() <= 80 &&
+      data.licenseNumber is string && data.licenseNumber.size() <= 40 &&
+      data.cityRegion is string && data.cityRegion.size() >= 2 && data.cityRegion.size() <= 80 &&
+      data.officeAddress is string && data.officeAddress.size() <= 160 &&
+      data.officePhone is string && data.officePhone.size() <= 30 &&
+      data.officeEmail is string && data.officeEmail.size() <= 120 &&
+      data.accentColor is string && data.accentColor.size() == 7 && data.accentColor.matches('^#[0-9A-Fa-f]{6}$') &&
+      data.fontStyle in ['editorial-serif', 'modern-architectural'] &&
+      data.heroHeadline is string && data.heroHeadline.size() >= 5 && data.heroHeadline.size() <= 140 &&
+      data.heroSubheadline is string && data.heroSubheadline.size() >= 5 && data.heroSubheadline.size() <= 260 &&
+      data.agentBio is string && data.agentBio.size() <= 1000 &&
+      data.updatedAt is timestamp;
+    }
+
+    // Connection check document
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // Admins lookup (read own record only)
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && request.auth.uid == adminId;
+      allow list, create, update, delete: if false;
+    }
+
+    // Seller & Inquiry Leads: Public create with strict schema; Admin-only read/list/update/delete
+    match /leads/{leadId} {
+      allow get: if isValidId(leadId) && isAdmin();
+      allow list: if isAdmin();
+      allow create: if isValidId(leadId)
+        && isValidLead(incoming())
+        && incoming().status == 'new'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(leadId)
+        && isAdmin()
+        && isValidLead(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (existing().status != 'closed' && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'notes', 'tags', 'preferredSlot', 'updatedAt'])) ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'notes', 'tags', 'updatedAt']))
+        );
+      allow delete: if isValidId(leadId) && isAdmin();
+    }
+
+    // Property Listings: Public catalog browse; Admin-only write
+    match /listings/{listingId} {
+      allow get: if isValidId(listingId);
+      allow list: if resource.data.status in ['for-sale', 'pending', 'sold'];
+      allow create: if isValidId(listingId)
+        && isAdmin()
+        && isValidListing(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(listingId)
+        && isAdmin()
+        && isValidListing(incoming())
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'title', 'address', 'neighborhood', 'city', 'price', 'beds', 'baths',
+          'sqft', 'lotSqft', 'status', 'propertyType', 'daysOnMarket',
+          'saleToListRatio', 'imageUrl', 'description', 'highlights', 'featured',
+          'updatedAt'
+        ]);
+      allow delete: if isValidId(listingId) && isAdmin();
+    }
+
+    // Agency Brand & Template Settings: Public read for website rendering; Admin-only write
+    match /siteSettings/{settingId} {
+      allow get: if isValidId(settingId) && settingId == 'brand';
+      allow list: if false;
+      allow create: if isValidId(settingId)
+        && settingId == 'brand'
+        && isAdmin()
+        && isValidSiteSettings(incoming())
+        && incoming().updatedAt == request.time;
+      allow update: if isValidId(settingId)
+        && settingId == 'brand'
+        && isAdmin()
+        && isValidSiteSettings(incoming())
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly([
+          'agencyName', 'agentName', 'agentTitle', 'licenseNumber', 'cityRegion',
+          'officeAddress', 'officePhone', 'officeEmail', 'accentColor', 'fontStyle',
+          'heroHeadline', 'heroSubheadline', 'agentBio', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+  }
+}

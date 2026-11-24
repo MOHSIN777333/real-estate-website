@@ -1,0 +1,321 @@
+{
+  "entities": {
+    "Lead": {
+      "title": "Seller & Inquiry Lead",
+      "description": "A seller consultation request, home valuation lead, or general inquiry captured from the agency funnel and routed into the CRM.",
+      "type": "object",
+      "properties": {
+        "fullName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 100,
+          "description": "Full name of the prospective seller or buyer."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 5,
+          "maxLength": 120,
+          "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+          "description": "Contact email address."
+        },
+        "phone": {
+          "type": "string",
+          "minLength": 7,
+          "maxLength": 30,
+          "description": "Contact phone number."
+        },
+        "propertyAddress": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 200,
+          "description": "Street address of the property to be sold or inquired about."
+        },
+        "neighborhood": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80,
+          "description": "Local neighborhood or ZIP area."
+        },
+        "propertyType": {
+          "type": "string",
+          "enum": ["Single Family", "Modern Estate", "Townhome", "Condo", "Lot / Land"],
+          "description": "Type of residential property."
+        },
+        "estimatedValue": {
+          "type": "number",
+          "description": "Estimated property value in USD."
+        },
+        "timeline": {
+          "type": "string",
+          "enum": ["ASAP (0-30 Days)", "1-3 Months", "3-6 Months", "Exploring Options"],
+          "description": "Target listing or selling timeline."
+        },
+        "homeCondition": {
+          "type": "string",
+          "enum": ["Turnkey / Renovated", "Move-in Ready", "Needs Light Updates", "Major Renovation"],
+          "description": "Self-reported condition of the home."
+        },
+        "leadType": {
+          "type": "string",
+          "enum": ["seller-consultation", "home-valuation", "property-inquiry", "general-contact"],
+          "description": "Funnel origin classification."
+        },
+        "preferredSlot": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Preferred date/time slot for the listing consultation."
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Seller notes or agent CRM follow-up notes."
+        },
+        "tags": {
+          "type": "array",
+          "description": "Automated CRM tags applied upon form submission (max 10 tags)."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["new", "contacted", "consultation-booked", "listed", "closed"],
+          "description": "Current CRM pipeline stage."
+        },
+        "sourcePage": {
+          "type": "string",
+          "maxLength": 60,
+          "description": "Website route where the lead was captured."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of lead creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last CRM update."
+        }
+      },
+      "required": [
+        "fullName",
+        "email",
+        "phone",
+        "propertyAddress",
+        "neighborhood",
+        "propertyType",
+        "estimatedValue",
+        "timeline",
+        "homeCondition",
+        "leadType",
+        "preferredSlot",
+        "notes",
+        "tags",
+        "status",
+        "sourcePage",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Listing": {
+      "title": "Property Listing",
+      "description": "Residential property listing displayed in the agency search gallery and sold portfolio.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 120
+        },
+        "address": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 160
+        },
+        "neighborhood": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "city": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "price": {
+          "type": "number"
+        },
+        "beds": {
+          "type": "number"
+        },
+        "baths": {
+          "type": "number"
+        },
+        "sqft": {
+          "type": "number"
+        },
+        "lotSqft": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["for-sale", "pending", "sold"]
+        },
+        "propertyType": {
+          "type": "string",
+          "enum": ["Single Family", "Modern Estate", "Townhome", "Condo"]
+        },
+        "daysOnMarket": {
+          "type": "number"
+        },
+        "saleToListRatio": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 300
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1200
+        },
+        "highlights": {
+          "type": "array",
+          "description": "Key architectural and marketing highlights (max 8 items)."
+        },
+        "featured": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "title",
+        "address",
+        "neighborhood",
+        "city",
+        "price",
+        "beds",
+        "baths",
+        "sqft",
+        "lotSqft",
+        "status",
+        "propertyType",
+        "daysOnMarket",
+        "saleToListRatio",
+        "imageUrl",
+        "description",
+        "highlights",
+        "featured",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SiteBrandSettings": {
+      "title": "Agency Brand & Template Settings",
+      "description": "Customizable agency branding, agent bio, localized market copy, and Canva-matched color/typography tokens.",
+      "type": "object",
+      "properties": {
+        "agencyName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "agentName": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "agentTitle": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "licenseNumber": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "cityRegion": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "officeAddress": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "officePhone": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "officeEmail": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "accentColor": {
+          "type": "string",
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "maxLength": 7
+        },
+        "fontStyle": {
+          "type": "string",
+          "enum": ["editorial-serif", "modern-architectural"]
+        },
+        "heroHeadline": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 140
+        },
+        "heroSubheadline": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 260
+        },
+        "agentBio": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "agencyName",
+        "agentName",
+        "agentTitle",
+        "licenseNumber",
+        "cityRegion",
+        "officeAddress",
+        "officePhone",
+        "officeEmail",
+        "accentColor",
+        "fontStyle",
+        "heroHeadline",
+        "heroSubheadline",
+        "agentBio",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/leads/{leadId}": {
+      "schema": { "$ref": "#/entities/Lead" },
+      "description": "Seller consultation and property inquiry leads. Public create with strict schema validation; admin-only read, list, update, delete."
+    },
+    "/listings/{listingId}": {
+      "schema": { "$ref": "#/entities/Listing" },
+      "description": "Agency active and sold residential listings. Publicly browsable; admin-only write."
+    },
+    "/siteSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/SiteBrandSettings" },
+      "description": "Publicly readable agency branding settings (doc id: brand); admin-only write."
+    }
+  }
+}

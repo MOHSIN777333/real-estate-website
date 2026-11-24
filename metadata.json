@@ -1,0 +1,6 @@
+{
+  "name": "Hartwell Realty — Austin Seller Advisory & CRM",
+  "description": "Independent Austin real estate agency website featuring a seller consultation funnel, property search, automated Firebase CRM lead tagging, and customizable brand template kit.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
